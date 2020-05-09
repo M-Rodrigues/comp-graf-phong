@@ -1,0 +1,10 @@
+{
+  "name": "proj02",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "dependencies": {
+    "jimp": "^0.10.2",
+    "mathjs": "^6.6.4"
+  }
+}
