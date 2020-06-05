@@ -22,8 +22,8 @@ module.exports = {
 
   // Resolucao da imagem
   image_resolution: {
-    W: 1000,
-    H: 1000,
+    W: 300,
+    H: 300,
   },
 
   // Constante de reflexao especular da esfera
@@ -60,5 +60,5 @@ module.exports = {
   },
 
   // Nome do arquivo da imagem gerada
-  img_file_name: 'img/multiple_spheres'
+  img_file_name: 'img/test'
 }

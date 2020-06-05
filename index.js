@@ -1,8 +1,8 @@
 (async () => {
   const Jimp = require('jimp')
   
-  const Config = require('./config')
-  const LinAlg = require('./lin_alg')
+  const Config = require('./utils/config')
+  const LinAlg = require('./utils/lin_alg')
 
   // Leva ponto x no intervalo [a, b] no intervalo [c, d]
   function linear(a, b, c, d, x) { return (d - c) * (x - a) / (b - a) + c }
