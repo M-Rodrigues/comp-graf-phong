@@ -1,86 +1,140 @@
 (async () => {
   const Jimp = require('jimp')
-  const math = require('mathjs')
+  const Config = require('./config')
+  const LinAlg = require('./lin_alg')
 
-  const white = 0xFFFFFFFF
-  function blackImage() {
-    return new Jimp(200, 200, 'black', (err) => {
-      if (err) throw err
-    })
-  }
+  function linear(a, b, c, d, x) { return (d - c) * (x - a) / (b - a) + c }
 
-  // QUESTAO 1
-  const imgQ1 = blackImage()
-  for (const { x, y } of imgQ1.scanIterator(0, 0, 200, 200)) {
-    const [a, b] = [x / 100 - 1, y / 100 - 1]
-    const halfPixel = 2 / 200 / 2
+  function ray_sphere_intersection(x, y, z) {
+    // Direcao do raio de luz que chega na camera
+    const D = {
+      x: x - Config.camera.x,
+      y: y - Config.camera.y,
+      z: z - Config.camera.z
+    }
 
-    function F(x, y) { return x * x + y * y - 1 }
+    // Resolver equacao (Dx^2 + Dy^2 + Dz^2)*t^2 + 2*(x0*Dx + y0*Dy = z0*Dz)*t + (x0^2 + y0^2 + z0^2 - 1) = 0
+    // onde (x0, y0, z0) eh a camera. Tomar menor raiz, pois eh a que fica mais proxima da camera
+    const A = D.x * D.x + D.y * D.y + D.z * D.z
+    const B = 2 * (Config.camera.x * D.x + Config.camera.y * D.y + Config.camera.z * D.z)
+    const C = Config.camera.x * Config.camera.x + Config.camera.y * Config.camera.y + Config.camera.z * Config.camera.z - 1
 
-    const f1 = F(a - halfPixel, b - halfPixel)
-    const f2 = F(a - halfPixel, b + halfPixel)
-    const f3 = F(a + halfPixel, b + halfPixel)
-    const f4 = F(a + halfPixel, b - halfPixel)
+    const Delta = B * B - 4 * A * C
 
-    if (f1 * f2 < 0 || f2 * f3 < 0 || f3 * f4 < 0 || f4 * f1 < 0) {
-      imgQ1.setPixelColor(white, x, y)
+    if (Delta < 0) return false
+
+    let t
+    if (Delta == 0) {
+      t = (-B) / (2 * A)
+    } else {
+      t = Math.min(
+        (-B + Math.sqrt(Delta)) / (2 * A),
+        (-B - Math.sqrt(Delta)) / (2 * A)
+      )
+    }
+
+    return {
+      x: Config.camera.x + t * D.x,
+      y: Config.camera.y + t * D.y,
+      z: Config.camera.z + t * D.z
     }
   }
-  imgQ1.write('questao1.jpg')
 
-  // QUESTAO 2a
-  const imgQ2a = blackImage()
-  let t = 0, dt = 0.1
-  while (t < 100) {
-    const [x, y] = [t * math.sin(t) + 100, t * math.cos(t) + 100]
-    imgQ2a.setPixelColor(white, x, y)
-    t += dt
-  }
-  imgQ2a.write('questao2a.jpg')
+  function phong(p) {
+    // Por conveniencia a esfera esta centrada na origem e tem raio 1
+    // Logo, o vetor normal a superfice no ponto p eh o proprio ponto p
+    const N = p
 
-  // QUESTAO 2b
-  const imgQ2b = blackImage()
-  t = 0
-  while (t < 100) {
-    const [x, y] = [t * math.sin(t) + 100, t * math.cos(t) + 100]
-    imgQ2b.setPixelColor(white, x, y)
+    // Feixe de luz
+    const L = LinAlg.normalize(LinAlg.vector(
+      Config.light_source.x - p.x,
+      Config.light_source.y - p.y,
+      Config.light_source.z - p.z
+    ))
 
-    const dt = 1 / math.sqrt(t * t + 1)
-    t += dt
-  }
-  imgQ2b.writeAsync('questao2b.jpg')
+    // Direcao de visada
+    const V = LinAlg.normalize(LinAlg.vector(
+      Config.camera.x - p.x,
+      Config.camera.y - p.y,
+      Config.camera.z - p.z
+    ))
 
-  // QUESTAO 3
-  const imgQ3 = blackImage()
-  for (const { x, y } of imgQ3.scanIterator(0, 0, 200, 200)) {
-    const [a, b] = [x / 200, y / 200]
-    const f1 = b - a
-    const f2 = a * a + b * b - 1
-    const f3 = (a - 1) * (a - 1) + (b - 1) * (b - 1) - 1
+    // Direcao de reflexao
+    const R = LinAlg.normalize(LinAlg.sub(LinAlg.mul(2, N), L))
 
-    if (f1 < 0 && f2 < 0 && f3 < 0) {
-      imgQ3.setPixelColor(white, x, y)
+    const dot_N_L = LinAlg.dot_product(N, L)
+    const dot_R_V = LinAlg.dot_product(R, V)
+
+    let color = LinAlg.vector(0, 0, 0)
+    
+    // Reflexao difusa
+    if (Config.phong.dif) {
+      color = LinAlg.add(color, LinAlg.vector(
+        Config.Kd.R * dot_N_L * Config.I.R,
+        Config.Kd.G * dot_N_L * Config.I.G,
+        Config.Kd.B * dot_N_L * Config.I.B,
+        ))
+      }
+
+    // Reflexao specular
+    if (Config.phong.spe) {
+      const val = dot_R_V ** Config.roughness_n
+      color = LinAlg.add(color, LinAlg.vector(
+        Config.Ks * val * Config.I.R,
+        Config.Ks * val * Config.I.G,
+        Config.Ks * val * Config.I.B
+      ))
+    }
+    
+    // Reflexao do ambiente
+    if (Config.phong.amb) {
+      color = LinAlg.add(color, LinAlg.vector(
+        Config.I_amb.R,
+        Config.I_amb.G,
+        Config.I_amb.B,
+      ))
+    }
+
+    return {
+      R: color.x,
+      G: color.y,
+      B: color.z
     }
   }
-  imgQ3.writeAsync('questao3.jpg')
 
-  // QUESTAO 4
-  const imgQ4 = blackImage()
-  for (const { x, y } of imgQ4.scanIterator(0, 0, 200, 200)) {
-    const [a, b] = [x / 50 - 2, y / 50 - 2]
-    const halfPixel = 4 / 200 / 2
+  const img1 = new Jimp(Config.image_resolution.W, Config.image_resolution.H, (err) => {
+    if (err) throw err
+  });
 
-    function F(x, y) { return y * y - x * x * x + x }
+  for (const { x, y } of img1.scanIterator(0, 0, img1.bitmap.width, img1.bitmap.height)) {
+    // Converter ponto da imagem para ponto na cena
+    const [x_screen, y_screen, z_screen] = [
+      linear(0, img1.bitmap.width, -Config.screen.W / 2, Config.screen.W / 2, x),
+      linear(0, img1.bitmap.height, Config.screen.H / 2, -Config.screen.H / 2, y),
+      Config.screen.z_position
+    ]
 
-    const f1 = F(a - halfPixel, b - halfPixel)
-    const f2 = F(a - halfPixel, b + halfPixel)
-    const f3 = F(a + halfPixel, b + halfPixel)
-    const f4 = F(a + halfPixel, b - halfPixel)
+    const p = ray_sphere_intersection(x_screen, y_screen, z_screen)
 
-    if (f1 * f2 < 0 || f2 * f3 < 0 || f3 * f4 < 0 || f4 * f1 < 0) {
-      imgQ4.setPixelColor(white, x, y)
+    // Se tiver ponto de intersecao com a esfera
+    if (p) {
+      // Reflexao de Phong
+      const color = phong(p)
+
+      function convert_color(c) {
+        return Math.max(0, Math.min(255, Math.round(c)))
+      }
+
+      // console.log(color)
+      img1.setPixelColor(
+        Jimp.rgbaToInt(
+          convert_color(color.R),
+          convert_color(color.G),
+          convert_color(color.B),
+          255
+        ), x, y)
     }
   }
-  imgQ4.writeAsync('questao4.jpg')
 
+  img1.write(`${Config.img_file_name}.jpg`)
 })()
