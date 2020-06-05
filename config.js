@@ -16,26 +16,26 @@ module.exports = {
   // Posicao da fonte de luz
   light_source: {
     x: 0,
-    y: 3,
-    z: 3
+    y: 0,
+    z: 0.5
   },
 
   // Resolucao da imagem
   image_resolution: {
-    W: 300,
-    H: 300,
+    W: 1000,
+    H: 1000,
   },
 
   // Constante de reflexao especular da esfera
-  Ks: 0.5,
+  Ks: 0.8,
   // Brilho/rugosidade do material
-  shininess: 5,
+  shininess: 50,
 
   // Constante de reflexao por difusao da esfera para os 3 canais RGB
   Kd: {
-    R: 0.122931442,
-    G: 0.359338061,
-    B: 0.517730496
+    R: 0.363849765,
+    G: 0.208920188,
+    B: 0.427230047
   },
 
   // Intensidade da fonte luminosa
@@ -47,9 +47,9 @@ module.exports = {
 
   // Intensidade luminosa do ambiente
   I_amb: {
-    R: 0,
+    R: 40,
     G: 0,
-    B: 50
+    B: 40
   },
 
   // Componentes consideradas no modelo de Phong
@@ -60,5 +60,5 @@ module.exports = {
   },
 
   // Nome do arquivo da imagem gerada
-  img_file_name: 'img/pos2'
+  img_file_name: 'img/multiple_spheres'
 }
