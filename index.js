@@ -1,10 +1,15 @@
 (async () => {
   const Jimp = require('jimp')
+  
   const Config = require('./config')
   const LinAlg = require('./lin_alg')
 
+  // Leva ponto x no intervalo [a, b] no intervalo [c, d]
   function linear(a, b, c, d, x) { return (d - c) * (x - a) / (b - a) + c }
 
+  // Calcula o ponto de intersecao na superficie da esfera
+  // de um raio q sai da camera e passa por um ponto x, y, z
+  // da tela na cena
   function ray_sphere_intersection(x, y, z) {
     // Direcao do raio de luz que chega na camera
     const D = {
@@ -40,6 +45,8 @@
     }
   }
 
+  // Calcula a cor de um ponto da superficie da esfera
+  // visivel pela camera
   function phong(p) {
     // Por conveniencia a esfera esta centrada na origem e tem raio 1
     // Logo, o vetor normal a superfice no ponto p eh o proprio ponto p
@@ -78,7 +85,7 @@
 
     // Reflexao specular
     if (Config.phong.spe) {
-      const val = dot_R_V ** Config.roughness_n
+      const val = dot_R_V ** Config.shininess
       color = LinAlg.add(color, LinAlg.vector(
         Config.Ks * val * Config.I.R,
         Config.Ks * val * Config.I.G,
@@ -102,18 +109,21 @@
     }
   }
 
-  const img1 = new Jimp(Config.image_resolution.W, Config.image_resolution.H, (err) => {
+  // Criando imagem
+  const img = new Jimp(Config.image_resolution.W, Config.image_resolution.H, (err) => {
     if (err) throw err
   });
 
-  for (const { x, y } of img1.scanIterator(0, 0, img1.bitmap.width, img1.bitmap.height)) {
-    // Converter ponto da imagem para ponto na cena
+  // Varrendo cada pixel da imagem final
+  for (const { x, y } of img.scanIterator(0, 0, img.bitmap.width, img.bitmap.height)) {
+    // Converter ponto da imagem para ponto na tela da cena
     const [x_screen, y_screen, z_screen] = [
-      linear(0, img1.bitmap.width, -Config.screen.W / 2, Config.screen.W / 2, x),
-      linear(0, img1.bitmap.height, Config.screen.H / 2, -Config.screen.H / 2, y),
+      linear(0, img.bitmap.width, -Config.screen.W / 2, Config.screen.W / 2, x),
+      linear(0, img.bitmap.height, Config.screen.H / 2, -Config.screen.H / 2, y),
       Config.screen.z_position
     ]
 
+    // Calcular ponto de intersecao do raio que chega na camera com a esfera
     const p = ray_sphere_intersection(x_screen, y_screen, z_screen)
 
     // Se tiver ponto de intersecao com a esfera
@@ -121,12 +131,13 @@
       // Reflexao de Phong
       const color = phong(p)
 
+      // Colocar a cor no intervalo [0, 255]
       function convert_color(c) {
         return Math.max(0, Math.min(255, Math.round(c)))
       }
 
-      // console.log(color)
-      img1.setPixelColor(
+      // Colorir o pixel
+      img.setPixelColor(
         Jimp.rgbaToInt(
           convert_color(color.R),
           convert_color(color.G),
@@ -136,5 +147,6 @@
     }
   }
 
-  img1.write(`${Config.img_file_name}.jpg`)
+  // Salvar imagem
+  img.write(`${Config.img_file_name}.jpg`)
 })()
