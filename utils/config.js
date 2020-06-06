@@ -60,5 +60,5 @@ module.exports = {
   },
 
   // Nome do arquivo da imagem gerada
-  img_file_name: 'img/test'
+  img_file_name: 'img/multiple_spheres'
 }
