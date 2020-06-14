@@ -18,6 +18,6 @@ function solve_quadratic_equation(A, B, C) {
 }
 
 module.exports = {
-  linear: linear,
-  solve_quadratic_equation: solve_quadratic_equation
+  linear,
+  solve_quadratic_equation
 }

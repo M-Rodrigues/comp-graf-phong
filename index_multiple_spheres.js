@@ -1,16 +1,12 @@
-function Sphere(v, r) {
-  return {
-    center: v, r: r
-  }
-}
-
 (async () => {
   const Jimp = require('jimp')
 
-  const Config = require('./utils/config')
+  const Config = require('./config')
   const LightModel = require('./utils/light')
   const LinAlg = require('./utils/lin_alg')
   const Algebra = require('./utils/algebra')
+
+  const Sphere = require('./sphere')
 
   function get_pixel_color(camera, ray_direction, sphere) {
     // Calcular ponto de intersecao do raio que chega na camera com a esfera
@@ -41,9 +37,9 @@ function Sphere(v, r) {
   const dl = [-1, 0, 1]
   for (const dx of dl) {
     for (const dy of dl) {
-      objects.push(Sphere(LinAlg.vector(dx, dy, -2), 0.3))
-      objects.push(Sphere(LinAlg.vector(dx, dy, -1), 0.3))
-      objects.push(Sphere(LinAlg.vector(dx, dy, 0), 0.3))
+      objects.push(new Sphere(LinAlg.vector(dx, dy, -2), 0.3))
+      objects.push(new Sphere(LinAlg.vector(dx, dy, -1), 0.3))
+      objects.push(new Sphere(LinAlg.vector(dx, dy, 0), 0.3))
     }
   }
 
@@ -60,6 +56,7 @@ function Sphere(v, r) {
       Algebra.linear(0, img.bitmap.height, Config.screen.H / 2, -Config.screen.H / 2, y),
       Config.screen.z_position
     )
+
     const ray_direction = LinAlg.sub(p_screen, Config.camera)
 
     for (const sphere of objects) {

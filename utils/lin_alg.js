@@ -15,13 +15,13 @@ function normalize(v) { return mul(1/modulo(v), v) }
 
 function escalar_to_vec(K) { return vector(K, K, K) }
 module.exports = {
-  vector: vector,
-  add: add,
-  sub: sub,
-  minus: minus,
-  mul: mul,
-  dot_product: dot_product,
-  modulo: modulo,
-  normalize: normalize,
-  escalar_to_vec: escalar_to_vec
+  vector,
+  add,
+  sub,
+  minus,
+  mul,
+  dot_product,
+  modulo,
+  normalize,
+  escalar_to_vec
 }

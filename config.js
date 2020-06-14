@@ -16,8 +16,8 @@ module.exports = {
   // Posicao da fonte de luz
   light_source: {
     x: 0,
-    y: 0,
-    z: 0.5
+    y: 3,
+    z: -3
   },
 
   // Resolucao da imagem
@@ -25,6 +25,11 @@ module.exports = {
     W: 300,
     H: 300,
   },
+
+  // Lista de esferas presentes na cena
+  spheres: [
+    { center: [0, 0, 0], radius: 1 }
+  ],
 
   // Constante de reflexao especular da esfera
   Ks: 0.8,
@@ -60,5 +65,5 @@ module.exports = {
   },
 
   // Nome do arquivo da imagem gerada
-  img_file_name: 'img/multiple_spheres'
+  img_file_name: 'img/test'
 }

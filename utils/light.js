@@ -11,7 +11,7 @@ function ray_intersection_sphere(orig, dire, sphere) {
   // onde (x0, y0, z0) eh a camera. Tomar menor raiz, pois eh a que fica mais proxima da camera
   const A = LinAlg.dot_product(dire, dire)
   const B = 2 * LinAlg.dot_product(dire, aux)
-  const C = LinAlg.modulo(aux) ** 2 - sphere.r ** 2
+  const C = LinAlg.modulo(aux) ** 2 - sphere.radius ** 2
 
   const roots = Algebra.solve_quadratic_equation(A, B, C)
 
@@ -68,7 +68,7 @@ function ray_intersection_sphere(orig, dire, sphere) {
     }
 
     // Reflexao specular
-    if (config.phong.spe) {
+    if (config.phong.spe && dot_N_L > 0) {
       const val = dot_R_V ** config.shininess
       color = LinAlg.add(color, LinAlg.vector(
         config.Ks * val * config.I.R,
@@ -94,6 +94,6 @@ function ray_intersection_sphere(orig, dire, sphere) {
   }
 
 module.exports = {
-  ray_intersection_sphere: ray_intersection_sphere,
-  phong: phong
+  ray_intersection_sphere,
+  phong
 }
