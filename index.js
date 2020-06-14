@@ -13,7 +13,7 @@
     const p = LightModel.ray_intersection_sphere(camera, ray_direction, sphere)
 
     // Se tiver ponto de intersecao com a esfera
-    if (!p) return false
+    if (!p) return [false, false]
     
     // Reflexao de Phong
     const color = LightModel.phong(p, sphere, Config)
@@ -24,12 +24,18 @@
     }
 
     // Colorir o pixel
-    return Jimp.rgbaToInt(
+    return [p, Jimp.rgbaToInt(
       convert_color(color.R),
       convert_color(color.G),
       convert_color(color.B),
       255
-    )
+    )]
+  }
+
+  async function sleep(time) {
+    return new Promise(resolve => {
+      setTimeout(resolve, time)
+    })
   }
 
   // Carregando esferas da cena
@@ -38,6 +44,7 @@
     return new Sphere(LinAlg.vector(x, y, z), sphere.radius)
   })
 
+  
   // Criando imagem
   const img = new Jimp(Config.image_resolution.W, Config.image_resolution.H, (err) => {
     if (err) throw err
@@ -53,14 +60,21 @@
     )
 
     const ray_direction = LinAlg.sub(p_screen, Config.camera)
-
+    
+    let screen_dist
     for (const sphere of objects) {
-      const color = get_pixel_color(Config.camera, ray_direction, sphere)
+      const [p, color] = get_pixel_color(Config.camera, ray_direction, sphere)
       
-      if (!color) continue
+      if (!color || !p) continue
+      
+      const pixel_dist = LinAlg.modulo(LinAlg.sub(p, p_screen))
+      if (p && !screen_dist) screen_dist = pixel_dist
       
       // Colorir o pixel
-      img.setPixelColor(color, x, y)
+      if (pixel_dist <= screen_dist) {
+        screen_dist = pixel_dist
+        img.setPixelColor(color, x, y)
+      }
     }
   }
 

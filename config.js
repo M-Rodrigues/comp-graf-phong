@@ -17,7 +17,7 @@ module.exports = {
   light_source: {
     x: 0,
     y: 3,
-    z: -3
+    z: 2
   },
 
   // Resolucao da imagem

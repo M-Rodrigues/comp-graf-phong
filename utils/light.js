@@ -7,7 +7,7 @@ const Algebra = require('./algebra')
 function ray_intersection_sphere(orig, dire, sphere) {
   const aux = LinAlg.sub(orig, sphere.center)
 
-  // Resolver equacao (Dx^2 + Dy^2 + Dz^2)*t^2 + 2*(x0*Dx + y0*Dy = z0*Dz)*t + (x0^2 + y0^2 + z0^2 - 1) = 0
+  // Resolver equacao (Dx^2 + Dy^2 + Dz^2)*t^2 + 2*(x0*Dx + y0*Dy = z0*Dz)*t + (x0^2 + y0^2 + z0^2 - r^2) = 0
   // onde (x0, y0, z0) eh a camera. Tomar menor raiz, pois eh a que fica mais proxima da camera
   const A = LinAlg.dot_product(dire, dire)
   const B = 2 * LinAlg.dot_product(dire, aux)
@@ -68,7 +68,7 @@ function ray_intersection_sphere(orig, dire, sphere) {
     }
 
     // Reflexao specular
-    if (config.phong.spe && dot_N_L > 0) {
+    if (config.phong.spe) {
       const val = dot_R_V ** config.shininess
       color = LinAlg.add(color, LinAlg.vector(
         config.Ks * val * config.I.R,
